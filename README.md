@@ -51,10 +51,12 @@ addp:   enter a b
 make または、make tailを実行しておくとデバッグサーバの標準エラー出力が出力結果がターミナルに表示されてログとして利用できるので便利です。ただし、Unix環境でないと動かないかもしれません。
 makeによるログ表示はtailコマンドで/tmp/server.logを表示するだけなので表示しなくても動作します。
 
-![img](https://raw.githubusercontent.com/hsk/vscode-debugger-asm-php/master/images/fig2.png)
+![img](https://raw.githubusercontent.com/hsk/vscode-debugger-asm-php/master/images/fig3.png)
 
 次は asm.txt を開き、ブレークポイントを設定しデバッグしてみましょう。
 プログラムを停止したあと変数の中身を書き換えることも出来ます。
+
+![img](https://raw.githubusercontent.com/hsk/vscode-debugger-asm-php/master/images/fig2.png)
 
 ## アンインストール
 
