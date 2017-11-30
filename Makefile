@@ -1,11 +1,13 @@
 all:
-	rm -rf ~/.vscode/extensions/asm-php-0.0.1
+	make uninstall
 	cp -rf ../vscode-debugger-asm-php ~/.vscode/extensions/asm-php-0.0.1
 	make tail
-all2:
+
+uninstall:
 	rm -rf /tmp/server.log
 	rm -rf /tmp/recive.log
-	make all
+	rm -rf ~/.vscode/extensions/asm-php-0.0.1
+	
 tail:
 	touch /tmp/server.log
 	tail -100f /tmp/server.log
