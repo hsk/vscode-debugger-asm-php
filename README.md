@@ -43,10 +43,13 @@ addp:   enter a b
 
 最初は一度再読込が必要です。 F1 を押した後、ウィンドウを再読込してください。
 
+
 ２回目以降は、外部プロセスのみの書き換えになるのでも再読込なしで実行できます。
 また、server.shを書き換えることで、読み込みプログラムをphpからjsに書き換えることも可能です。
 
 デバッグコンソールに3と表示されれば成功です。
+
+![img](https://raw.githubusercontent.com/hsk/vscode-debugger-asm-php/master/images/fig4.png)
 
 make または、make tailを実行しておくとデバッグサーバの標準エラー出力が出力結果がターミナルに表示されてログとして利用できるので便利です。ただし、Unix環境でないと動かないかもしれません。
 makeによるログ表示はtailコマンドで/tmp/server.logを表示するだけなので表示しなくても動作します。
