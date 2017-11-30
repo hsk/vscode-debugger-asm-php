@@ -86,13 +86,8 @@ class DebugSession {
         if(!isset($data["arguments"])) $data["arguments"]=null;
         $this->last_request_seq=0;
         call_user_func(array($this,$command),$response,$data["arguments"]);
-        if($command=="disconnectRequest") {
-          $this->log("dissconnect");
-          $this->log("exit process");
-          $this->log1("call method ok-------------------");
-          return;
-        }
         $this->log1("call method ok-------------------");
+        if($command=="disconnectRequest") return;
         break;
       default:
         $this->log('unknown command '.$this->json_encode($data));
@@ -107,7 +102,9 @@ class DebugSession {
   }
   function disconnectRequest($response, $argv) {
     $this->sendResponse($response);
-  }
+    $this->log("disconnect");
+    $this->log("exit process");
+}
 }
 
 class VM {
