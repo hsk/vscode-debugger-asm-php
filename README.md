@@ -1,7 +1,17 @@
 # VS コードのデバッガサンプル(PHPバージョン)
 
 これは簡単なアセンブラ言語を作ってそのデバッガを作るサンプルプロジェクトです。
-通常は、TypeScriptでデバッグサーバを書くのですが、簡単な標準入出力でデバッグ用のサーバが書けるらしいので、それをPHPで書いてみたというものです。以下のようなアセンブラをデバッグしてみることが出来ます:
+通常は、TypeScriptでDebug Extensions を書くのですが、簡単な標準入出力で VS Code Debug Protocol を使ってデバッグ用のサーバが書けそうなので、Debug Extensions を PHP で書いてみたというものです。
+
+![img](https://raw.githubusercontent.com/hsk/vscode-docs/ja/docs/extensions/images/example-debuggers/debug-arch.png)
+
+
+デバッガを試す場合に、リロード作業が必要ないのでデバッガのデバッグをPrintfデバッグしながら開発したい場合に便利かもしれません。
+また、初めてのデバッガ開発だけどどうしたら良いのかよくわからないという場合に、直接VSCodeのプロトコルを使うことを検討したい場合にも役立つかも知れません。
+
+![img](https://raw.githubusercontent/hsk/vscode-debugger-asm-php/images/fig1.phg)
+
+以下のようなアセンブラをデバッグしてみることが出来ます:
 
 asm.txt
 
@@ -47,3 +57,7 @@ make を実行しておくとデバッグサーバの標準エラー出力が出
     make uninstall
 
 とすると、拡張は削除されます。
+
+## 参考
+
+https://github.com/hsk/vscode-docs/blob/ja/docs/extensions/example-debuggers.md
