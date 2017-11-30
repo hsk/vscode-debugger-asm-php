@@ -1,6 +1,6 @@
 all:
 	rm -rf ~/.vscode/extensions/asm-php-0.0.1
-	cp -rf ../asm-php ~/.vscode/extensions/asm-php-0.0.1
+	cp -rf ../vscode-debugger-asm-php ~/.vscode/extensions/asm-php-0.0.1
 	make tail
 all2:
 	rm -rf /tmp/server.log
