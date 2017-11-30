@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
 
-    // 構成の追加用コマンドの追加と、削除設定
+  // 構成の追加用コマンドの追加と、削除設定
   context.subscriptions.push(vscode.commands.registerCommand('extension.asm-debug.provideInitialConfigurations', () => {
     // デバッグの構成の追加メニューから ./vscode/launch.json に設定を作る
     const initialConfigurations = {

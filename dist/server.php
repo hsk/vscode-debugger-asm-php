@@ -104,7 +104,7 @@ class DebugSession {
     $this->sendResponse($response);
     $this->log("disconnect");
     $this->log("exit process");
-}
+  }
 }
 
 class VM {

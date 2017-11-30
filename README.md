@@ -211,3 +211,6 @@ return '{"seq":17,"type":"response","request_seq":11,"command":"scopes","success
 
 うーむ。最後悩んだのは、variablesReferenceの値に名前を入れてしまっていたことだった。
 IDからの連想配列にして、IDを更新するようにして対応した。
+
+とにかく、出来たのでリファクタリングした。
+このドキュメントはわけがわからないこと間違いないので書き換える必要があるｗ

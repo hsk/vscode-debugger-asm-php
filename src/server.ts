@@ -11,15 +11,13 @@ import {DebugProtocol} from 'vscode-debugprotocol';
 import {readFileSync} from 'fs';
 import {basename} from 'path';
 
-/**
- * This interface should always match the schema found in the mock-debug extension manifest.
- */
+// This interface should always match the schema found in the mock-debug extension manifest.
 export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
-  /** An absolute path to the program to debug. */
+  // An absolute path to the program to debug.
   program: string;
-  /** Automatically stop target after launch. If not specified, target does not stop. */
+  // Automatically stop target after launch. If not specified, target does not stop.
   stopOnEntry?: boolean;
-  /** enable logging the Debug Adapter Protocol */
+  // enable logging the Debug Adapter Protocol
   trace?: boolean;
 }
 
@@ -35,13 +33,14 @@ class VM {
     console.log(str);
     this.logger(str);
   }
-  // ファイルをパースして公文きデータを返す
+
+  // ファイルをパースして構文木データを返す
   static parseFile(filename:string):{codes:Array<{data:Array<string>,line:number}>,labels:Map<string,number>} {
     const sources = readFileSync(filename).toString().split('\n');
     let line = 0;
     let pos = 0;
     let labels = new Map<string,number>();
-    let codes = sources.map(t=>({data:t.trim().split(/\s+/),line: line++})).filter(a=>{
+    let codes = sources.map(t=>({data: t.trim().split(/\s+/), line: line++})).filter(a=>{
       if(a.data.length == 0) return false;
       const m = a.data[0].match(/^([^:]+):$/)
       if (m) {
@@ -50,21 +49,16 @@ class VM {
         if(a.data.length==0) return false;
       }
       pos++;
-      switch(a.data[0]){
+      switch (a.data[0]) {
       case "add":
       case "sub":
       case "mul":
-      case "div":
-        return a.data.length == 4;
+      case "div":   return a.data.length == 4;
       case "ret":
-      case "print":
-        return a.data.length == 2;
-      case "enter":
-        return a.data.length >= 1;
-      case "call":
-        return a.data.length >= 2;
-      default:
-        break;
+      case "print": return a.data.length == 2;
+      case "enter": return a.data.length >= 1;
+      case "call":  return a.data.length >= 2;
+      default:      break;
       }
       pos--;
       return false;
@@ -173,10 +167,8 @@ class AsmDebugSession extends DebugSession {
     this.sendEvent(new OutputEvent(`${msg}\n`))
   }
 
-  /**
-   * The 'initialize' request is the first request called by the frontend
-   * to interrogate the features the debug adapter provides.
-   */
+  // The 'initialize' request is the first request called by the frontend
+  // to interrogate the features the debug adapter provides.
   protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
     this.sendEvent(new InitializedEvent());
 
@@ -363,9 +355,8 @@ class AsmDebugSession extends DebugSession {
     }
     return false;
   }
-  /**
-   * ブレークポイントや例外が発生したらブレークする
-   */
+
+  // ブレークポイントや例外が発生したらブレークする
   private hitBreakPoint(response: DebugProtocol.Response): boolean {
     // 対象のファイルのブレークポイントを取得する
     const breakpoints = this._breakPoints.get(this._sourceFile);
