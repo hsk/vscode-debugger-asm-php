@@ -1,0 +1,84 @@
+{
+  "name": "asm-php",
+  "displayName": "asm-php",
+  "description": "",
+  "version": "0.0.1",
+  "publisher": "hsk",
+  "engines": {
+    "vscode": "^1.12.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/src/extension",
+	"activationEvents": [
+		"onCommand:extension.asm-php-debug.provideInitialConfigurations"
+	],
+  "contributes": {
+		"ブレークポイントが設定できる言語設定": "プレーンテキストだとブレークポイントが設定可能になる",
+		"breakpoints": [ { "language": "plaintext" } ],
+		"debuggers": [{
+				"type": "asm-php",
+				"label": "Asm PHP Debug",
+				"program": "./dist/server.sh",
+				"デバッグ ▶ 構成の追加で呼ばれるコマンド" : "コマンドの中身は src/extension.ts にあります。",
+				"initialConfigurations": "extension.asm-php-debug.provideInitialConfigurations",
+				"launch.json の設定のスキーマ":"入力時に説明が表示されたり、型チェックできたりします。",
+				"configurationAttributes": {
+					"launch": {
+						"required": [ "program" ],
+						"properties": {
+							"program": {
+								"type": "string",
+								"description": "Absolute path to a text file.",
+								"default": "${workspaceRoot}/asm.txt"
+							},
+							"stopOnEntry": {
+								"type": "boolean",
+								"description": "Automatically stop after launch.",
+								"default": true
+							},
+							"trace": {
+								"type": "boolean",
+								"description": "Enable logging of the Debug Adapter Protocol.",
+								"default": true
+							}
+						}
+					}
+				},
+				"launch.json を編集中に追加する場合のテンプレート":"日本語で説明を書いて、デバッグ設定付きにしてみました。",
+				"configurationSnippets": [
+					{
+						"label": "Asm-php Debug: Launch(dist/server.php debug)",
+						"description": "debugServer オプションが付きなので、 dist/server.php を 開発用 VS Code で server をデバッグ起動したものに接続します。",
+						"body": {
+							"type": "asm-php",
+							"request": "launch",
+							"name": "asm-phpデバッグサーバ",
+							"program": "^\"\\${workspaceRoot}/asm.txt\"",
+							"debugServer": 4711
+						}
+					}
+				]
+		}]
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.40",
+    "mocha": "^2.3.3",
+    "tslint": "^5.2.0",
+    "typescript": "^2.0.3",
+    "vscode": "^1.0.0",
+    "vscode-debugadapter-testsupport": "^1.19.0"
+  },
+  "dependencies": {
+    "vscode-debugadapter": "^1.19.0",
+    "vscode-debugprotocol": "^1.19.0"
+  }
+}

@@ -1,0 +1,8 @@
+main:
+    call addp 1 2 a
+    print a
+    ret 0
+addp:
+    enter a b
+    add a b c
+    ret c
