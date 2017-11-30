@@ -64,51 +64,40 @@ class DebugSession {
   function dispatch() {
     $this->log1("**************************************************");
     while(true) {
-        $data = $this->readData(STDIN);
-        if($data===false) break;
-        $this->log2($data);
-        $this->log1($data);
-        $data = $this->json_decode(trim($data));
-        $command = $data["command"];
-        switch($data["command"]) {
-          case "initialize":
-          case "setBreakpoints":
-          case "setExceptionBreakpoints":
-          case "configurationDone":
-          case "disconnect":
-          case "threads":
-          case "launch":
-          case "stackTrace":
-          case "next":
-          case "stepIn":
-          case "stepOut":
-          case "continue":
-          case "scopes":
-          case "variables":
-          case "setVariable":
-          case "evaluate":
-            $response=array(
-              "type"=>"response",
-              "request_seq"=>$data["seq"],
-              "command"=>$data["command"],
-              "success"=>true,
-            );
-            $command.="Request";
-            if(isset($data["body"])) $response["body"]=$data["body"];
-            if(!isset($data["arguments"])) $data["arguments"]=null;
-            $this->last_request_seq=0;
-            call_user_func(array($this,$command),$response,$data["arguments"]);
-            if($command=="disconnectRequest") {
-              $this->log("dissconnect");
-              break 2;
-            }
-            $this->log1("call method ok-------------------");
-            continue 2;
+      $data = $this->readData(STDIN);
+      if($data===false) break;
+      $this->log2($data);
+      $this->log1($data);
+      $data = $this->json_decode(trim($data));
+      $command = $data["command"];
+      switch($data["command"]) {
+      case "initialize": case "setBreakpoints": case "setExceptionBreakpoints":
+      case "configurationDone": case "disconnect": case "threads": case "launch":
+      case "stackTrace": case "next": case "stepIn": case "stepOut": case "continue":
+      case "scopes": case "variables": case "setVariable": case "evaluate":
+        $response=array(
+          "type"=>"response",
+          "request_seq"=>$data["seq"],
+          "command"=>$data["command"],
+          "success"=>true,
+        );
+        $command.="Request";
+        if(isset($data["body"])) $response["body"]=$data["body"];
+        if(!isset($data["arguments"])) $data["arguments"]=null;
+        $this->last_request_seq=0;
+        call_user_func(array($this,$command),$response,$data["arguments"]);
+        if($command=="disconnectRequest") {
+          $this->log("dissconnect");
+          $this->log("exit process");
+          $this->log1("call method ok-------------------");
+          return;
         }
+        $this->log1("call method ok-------------------");
+        break;
+      default:
         $this->log('unknown command '.$this->json_encode($data));
+      }
     }
-    $this->log("exit process");
-    $this->log1("call method ok-------------------");
   }
   function setExceptionBreakpointsRequest($response, $argv) {
     $this->sendResponse($response);
