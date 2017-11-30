@@ -1,43 +1,42 @@
 // VS Code のデバッグ起動設定
 {
-    "version": "0.1.0",
-    "configurations": [
-      {
-        "type": "asm-php",
-        "request": "launch",
-        "name": "asm-phpデバッグサーバ",
-        "program": "${workspaceRoot}/asm.txt"
-      },
-        // 拡張機能付きでVS Code をデバッガから起動する
-        {
-            "name": "Extension",
-            "type": "extensionHost",
-            "request": "launch",
-            "runtimeExecutable": "${execPath}",
-            "args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
-            "sourceMaps": true,
-            "outFiles": [ "${workspaceRoot}/out/src/**/*.js" ],
-            "preLaunchTask": "npm"
-        },
-        // デバッグサーバ src/server.ts のデバッガ起動設定
-        {
-            "name": "Server",
-            "type": "node",
-            "request": "launch",
-			"cwd": "${workspaceRoot}",
-			"program": "${workspaceRoot}/src/server.ts",
-			"args": [ "--server=4711" ],
-            "sourceMaps": true,
-            "outFiles": [ "${workspaceRoot}/out/src/**/*.js" ],
-            "preLaunchTask": "npm"
-        }
-    ],
-    // 組み合わせ設定
-    "compounds": [
-        {
-            "name": "Extension + Server",
-            "configurations": [ "Extension", "Server" ]
-        }
-    ]
-    
+  "version": "0.1.0",
+  "configurations": [
+    {
+      "type": "asm-php",
+      "request": "launch",
+      "name": "asm-phpデバッグサーバ",
+      "program": "${workspaceRoot}/asm.txt"
+    },
+    // 拡張機能付きでVS Code をデバッガから起動する
+    {
+      "name": "Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
+      "sourceMaps": true,
+      "outFiles": [ "${workspaceRoot}/out/src/**/*.js" ],
+      "preLaunchTask": "npm"
+    },
+    // デバッグサーバ src/server.ts のデバッガ起動設定
+    {
+      "name": "Server",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "program": "${workspaceRoot}/src/server.ts",
+      "args": [ "--server=4711" ],
+      "sourceMaps": true,
+      "outFiles": [ "${workspaceRoot}/out/src/**/*.js" ],
+      "preLaunchTask": "npm"
+    }
+  ],
+  // 組み合わせ設定
+  "compounds": [
+    {
+      "name": "Extension + Server",
+      "configurations": [ "Extension", "Server" ]
+    }
+  ]
 }

@@ -95,14 +95,14 @@ end
 
 ```
   protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
-		this.sendEvent(new InitializedEvent());
+    this.sendEvent(new InitializedEvent());
 
-		response.body = response.body || {};
-		response.body.supportsConfigurationDoneRequest = true;
-		response.body.supportsEvaluateForHovers = true;
+    response.body = response.body || {};
+    response.body.supportsConfigurationDoneRequest = true;
+    response.body.supportsEvaluateForHovers = true;
 
-		this.sendResponse(response);
-	}
+    this.sendResponse(response);
+  }
 ```
 
 こんなことをすればよいらしい。
