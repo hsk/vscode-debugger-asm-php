@@ -10,8 +10,9 @@
 %start imm
 %type <Ast.imm> imm
 %%
-program:| insts EOF             { $1 }
-insts:  | label                 { [] }
+program:| insts                 { $1 }
+insts:  | label EOF             { [] }
+        | label inst EOF        { ($1,($2,$3))::[] }
         | label inst EOL insts  { ($1,($2,$3))::$4 }
 label:  | ID COLON eols         { $1 }
         | eols                  { "" }
