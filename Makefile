@@ -7,7 +7,9 @@ uninstall:
 	rm -rf /tmp/server.log
 	rm -rf /tmp/recive.log
 	rm -rf ~/.vscode/extensions/asm-php-0.0.1
-	
+ocaml:
+	cd dist/ocaml; make
+
 tail:
 	touch /tmp/server.log
 	tail -100f /tmp/server.log

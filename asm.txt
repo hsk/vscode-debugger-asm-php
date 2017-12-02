@@ -1,8 +1,9 @@
-
-main:   call addp 1 2 a
-        print a
-        ret 0
-
-addp:   enter a b
-        add a b c
-        ret c
+main:
+    add 100 0 a
+    add 200 0 b
+    call add1 a b c
+    print c
+    ret 0
+add1: enter d e
+    add d e f
+    ret f
