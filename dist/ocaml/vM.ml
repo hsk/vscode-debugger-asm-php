@@ -23,8 +23,8 @@ let parseImm src =
   Lexer.init();
   Parser.imm Lexer.token (Lexing.from_string src)
   
-let frame label p = { p; vars= !_vars; pos= !_currentPos; nm=label}
-  
+let frame label p = { p; vars= !_vars; pos= !_currentPos; nm=label }
+
 let loadFile filename =
   let a = parseFile filename in
   _codes := a.codes;

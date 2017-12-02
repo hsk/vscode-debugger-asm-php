@@ -164,12 +164,16 @@ class VM {
     $rc = array("codes"=>$codes,"labels"=>$labels);
     return $rc;
   }
-  
+  function frame($label, $p) {
+    return array("p"=>$p, "vars"=> $this->_vars, "pos"=> $this->_currentPos, "nm"=>$label);
+  }
+
   function loadFile($filename) {
     $a = VM::parseFile($filename);
     $this->_codes = $a["codes"];
     $this->_labels = $a["labels"];
     $this->_currentPos = $a["labels"]["main"];
+    $this->frames = array($this->frame("main","a"));
   }
   function getValue($argv) {
     if(is_numeric($argv)) return (int)$argv;
@@ -216,7 +220,7 @@ class VM {
       $this->log($a);
       break;
     case "ret":
-      if(count($this->frames)==0) {
+      if(count($this->frames)<= 1) {
         $this->_currentPos = count($this->_codes);
         return false;
       }
@@ -232,7 +236,7 @@ class VM {
       $pos = $this->_labels[$label];
       $code=$this->_codes[$pos];
       $enter = $code["data"];
-      $this->frames[] = array("p"=>array_pop($params),"vars"=>$this->_vars,"pos"=>$this->_currentPos,"nm"=>$label);
+      $this->frames[] = $this->frame($label,array_pop($params));
       $vars = array();
       for($i = 0; $i < count($params); $i++)
         $vars[$enter[$i+1]]=$this->getValue($params[$i]);
@@ -315,35 +319,29 @@ class AsmDebugSession extends DebugSession {
     $this->_sourceFile = $args["program"];
     $this->_lang->loadFile($this->_sourceFile);
     if (!isset($args["stopOnEntry"])) {
-      if ($this->hitBreakPoint($response)) return;
-      $this->continueRequest($response, array("threadId"=> AsmDebugSession::THREAD_ID));
-      return;
+      if ($this->hitBreakPoint($response)) return $this->sendStoped($response,"breakpoint");
+      return $this->continueRequest($response, array("threadId"=> AsmDebugSession::THREAD_ID));
     }
-    $this->sendResponse($response);
-    $this->sendEvent("stopped",array("reason"=>"entry","threadId"=>AsmDebugSession::THREAD_ID));
+    $this->sendStoped($response,"entry");
   }
 
   // ▶ ボタンを押した時に呼ばれる
   protected function continueRequest($response, $args) {
     while (true) {
-      if (!$this->step($response)) break 1;
-      if ($this->hitBreakPoint($response)) return;
+      if ($this->step()) return $this->sendTerminated($response);
+      if ($this->hitBreakPoint()) return $this->sendStoped($response,"breakpoint");
     }
-    $this->sendResponse($response);
-    $this->sendEvent("terminated");
   }
-
-  private function step($response) {
-    if ($this->_lang->step()) {
-      $this->sendResponse($response);
-      $this->sendEvent("stopped",array("reason"=>"step","threadId"=>AsmDebugSession::THREAD_ID));
-      return true;
-    }
-    return false;
+  function sendStoped($response, $reason) {
+    $this->sendResponse($response);
+    $this->sendEvent("stopped",array("reason"=>$reason,"threadId"=>AsmDebugSession::THREAD_ID));
+  }
+  private function step() {
+    return !$this->_lang->step();
   }
 
   // ブレークポイントや例外が発生したらブレークする
-  private function hitBreakPoint($response) {
+  private function hitBreakPoint() {
     // 対象のファイルのブレークポイントを取得する
     if (isset($this->_breakPoints[$this->_sourceFile])) {
       $breakpoints = $this->_breakPoints[$this->_sourceFile];
@@ -352,12 +350,7 @@ class AsmDebugSession extends DebugSession {
       $bps = array_filter($breakpoints,function($bp)use($line){
         return $bp["line"] === $this->convertDebuggerLineToClient($line);
       });
-      
-      if (count($bps) > 0) {
-        $this->sendResponse($response);
-        $this->sendEvent("stopped",array("reason"=>"breakpoint","threadId"=>AsmDebugSession::THREAD_ID));
-        return true;
-      }
+      return (count($bps) > 0);
     }
     return false;
   }
@@ -369,21 +362,12 @@ class AsmDebugSession extends DebugSession {
     $code = $this->_lang->getCode();
     for($i = count($this->_lang->frames) -1; $i >=0; $i--) {
       $frame = $this->_lang->frames[$i];
-      $frames[] = array("id"=>$i+1,"name"=>$frame["nm"], "source"=>array("name"=>basename($this->_sourceFile),
+      $frames[] = array("id"=>$i,"name"=>$frame["nm"], "source"=>array("name"=>basename($this->_sourceFile),
         "path"=>$this->convertDebuggerPathToClient($this->_sourceFile),
         "sourceReference"=>0),
         "line"=>$this->convertDebuggerLineToClient($code["line"]), "column"=>0);
       $code=$this->_lang->getCode($frame["pos"]);
     }
-    $frames[] = array(
-      "id"=>0,"name"=>"main",
-      "source"=>array(
-        "name"=>basename($this->_sourceFile),
-        "path"=>$this->convertDebuggerPathToClient($this->_sourceFile),
-        "sourceReference"=>0
-      ),
-      "line"=>$this->convertDebuggerLineToClient($code["line"]),
-      "column"=>0);
     $start  = $args["startFrame"] ? $args["startFrame"] : 0;
     $levels = $args["levels"] ? $args["levels"] : count($frames);
     
@@ -393,34 +377,32 @@ class AsmDebugSession extends DebugSession {
     );
     $this->sendResponse($response);
   }
-
+  function sendTerminated($response) {
+    $this->sendResponse($response);
+    $this->sendEvent("terminated");
+  }
   // ステップオーバー
   protected function nextRequest($response, $args) {
     $len = count($this->_lang->frames);
-    do {
-      if (!$this->step($response)) {
-        $this->sendResponse($response);
-        $this->sendEvent("terminated");
-        return;
-      }
-      if ($this->hitBreakPoint($response)) return;
-    } while($len < count($this->_lang->frames));
+    while (true) {
+      if ($this->step()) return $this->sendTerminated($response);
+      if ($this->hitBreakPoint()) return $this->sendStoped($response,"breakpoint");
+      if ($len >= count($this->_lang->frames)) return $this->sendStoped($response,"step");
+    }
   }
 
   protected function stepInRequest($response, $args) {
-    if($this->step($response)) return;
-    $this->sendResponse($response);
-    $this->sendEvent("terminated");
+    if($this->step()) return $this->sendTerminated($response);
+    $this->sendStoped($response,"step");
   }
 
   protected function stepOutRequest($response, $args) {
     $len = count($this->_lang->frames);
     while (true) {
-      if (!$this->step($response)) break;
-      if (count($this->_lang->frames) < $len || $this->hitBreakPoint($response)) return;
+      if ($this->step()) return $this->sendTerminated($response);
+      if ($this->hitBreakPoint()) return $this->sendStoped($response,"breakpoint");
+      if (count($this->_lang->frames) < $len) return $this->sendStoped($response,"step");
     }
-    $this->sendResponse($response);
-    $this->sendEvent("terminated");
   }
   protected function scopesRequest($response, $args) {
     $frameReference = $args["frameId"];
