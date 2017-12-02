@@ -1,6 +1,7 @@
 main:
     add 100 0 a
     add 200 0 b
+    print k
     call add1 a b c
     print c
     ret 0

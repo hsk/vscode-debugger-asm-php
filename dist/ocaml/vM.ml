@@ -32,6 +32,9 @@ let loadFile filename =
   _currentPos := List.assoc "main" a.labels;
   frames := [frame "main" "a"]
 
+let getValue_ = function
+  | Ast.Int i -> i
+  | Ast.Reg a -> List.assoc a !_vars
 let getValue = function
   | Ast.Int i -> i
   | Ast.Reg a -> try List.assoc a !_vars with Not_found -> 0

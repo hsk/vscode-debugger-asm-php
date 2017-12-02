@@ -38,7 +38,7 @@ let dispatch () =
         | "scopes" -> scopesRequest
         | "variables" -> variablesRequest
         | "setVariable" -> setVariableRequest
-        | "evaluate" -> setVariableRequest
+        | "evaluate" -> evaluateRequest
         | cmd -> (fun (a,b) -> log("unknown command "^json_encode(data)))
       in
       fn(`Assoc response,args);

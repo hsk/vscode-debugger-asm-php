@@ -175,7 +175,7 @@ class AsmDebugSession extends DebugSession {
   // The 'initialize' request is the first request called by the frontend
   // to interrogate the features the debug adapter provides.
   protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
-    this.log("type script version debugger");
+    this.log("TypeScript version debugger");
     this.sendEvent(new InitializedEvent());
 
     response.body = response.body || {};
@@ -190,13 +190,9 @@ class AsmDebugSession extends DebugSession {
 
     this._sourceFile = args.program;
     this._lang.loadFile(this._sourceFile);
-    if (args.stopOnEntry) {
-      this.sendResponse(response);
-      this.sendEvent(new StoppedEvent("entry", AsmDebugSession.THREAD_ID));
-    } else {
-      if (this.hitBreakPoint(response)) return;
-      this.continueRequest(<DebugProtocol.ContinueResponse>response, { threadId: AsmDebugSession.THREAD_ID });
-    }
+    if (args.stopOnEntry) this.sendStopped(response,"entry");
+    else if (this.hitBreakPoint()) return this.sendStopped(response,"breakpoint");
+    else this.continueRequest(<DebugProtocol.ContinueResponse>response, { threadId: AsmDebugSession.THREAD_ID });
   }
 
   protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -260,17 +256,14 @@ class AsmDebugSession extends DebugSession {
   }
 
   protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
-    this.log("scopesRequest");
     const frameReference = args.frameId;
     const scopes = new Array<Scope>();
     scopes.push(new Scope("Local", this._variableHandles.create("global_" + frameReference), false));
     response.body = { scopes: scopes };
     this.sendResponse(response);
-    this.log("response="+JSON.stringify(response));
   }
 
   protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments): void {
-    this.log("variablesRequest")
     const variables = new Array<DebugProtocol.Variable>();
     const id = this._variableHandles.get(args.variablesReference);
     if (id) {
@@ -286,50 +279,42 @@ class AsmDebugSession extends DebugSession {
     response.body = { variables };
     this.sendResponse(response);
   }
-
-  // ▶ ボタンを押した時に呼ばれる
-  protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
-    this.log("continueRequest");
-    while (true) {
-      if (!this.step(response)) break;
-      if (this.hitBreakPoint(response)) {
-        this.log("hitBreak");
-        return;
-      }
-    }
+  private sendTerminated(response:DebugProtocol.Response): void {
     this.sendResponse(response);
     this.sendEvent(new TerminatedEvent());
+  }
+  // ▶ ボタンを押した時に呼ばれる
+  protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
+    while (true) {
+      if (this.step()) return this.sendTerminated(response);
+      if (this.hitBreakPoint()) return this.sendStopped(response,"breakpoint");
+    }
   }
 
   // ステップオーバー
   protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
     const len = this._lang.frames.length
     do {
-      if (!this.step(response)) {
-        this.sendResponse(response);
-        this.sendEvent(new TerminatedEvent());
-        return;
-      }
-      if (this.hitBreakPoint(response)) return;
+      if (this.step()) return this.sendTerminated(response);
+      if (this.hitBreakPoint()) return this.sendStopped(response,"breakpoint");
     } while(len < this._lang.frames.length);
+    this.sendStopped(response,"step");
   }
 
   // Step Into
   protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): void {
-    if(this.step(response)) return;
-    this.sendResponse(response);
-    this.sendEvent(new TerminatedEvent());
+    if(this.step()) return this.sendTerminated(response);
+    this.sendStopped(response,"step");
   }
 
   protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): void {
     const len = this._lang.frames.length
     console.log("stepOut "+len);
     while (true) {
-      if (!this.step(response)) break;
-      if (this._lang.frames.length < len || this.hitBreakPoint(response)) return;
+      if (this.step()) return this.sendTerminated(response);
+      if (this._lang.frames.length < len) return this.sendStopped(response,"step");
+      if (this.hitBreakPoint()) return this.sendStopped(response,"breakpoint");
     }
-    this.sendResponse(response);
-    this.sendEvent(new TerminatedEvent());
   }
 
   protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
@@ -348,30 +333,24 @@ class AsmDebugSession extends DebugSession {
     response.body = args;
     this.sendResponse(response);
   }
+  private sendStopped(response: DebugProtocol.Response, reason:string): void {
+    this.sendResponse(response);
+    this.sendEvent(new StoppedEvent(reason, AsmDebugSession.THREAD_ID));
+  }
 
-  private step(response: DebugProtocol.Response): boolean {
-    this.log('line:'+ this._lang.getLine());
-    if (this._lang.step()) {
-      this.sendResponse(response);
-      this.sendEvent(new StoppedEvent("step", AsmDebugSession.THREAD_ID));
-      return true;
-    }
-    return false;
+  private step(): boolean {
+    return !this._lang.step();
   }
 
   // ブレークポイントや例外が発生したらブレークする
-  private hitBreakPoint(response: DebugProtocol.Response): boolean {
+  private hitBreakPoint(): boolean {
     // 対象のファイルのブレークポイントを取得する
     const breakpoints = this._breakPoints.get(this._sourceFile);
     const line = this._lang.getLine();
     // ブレークポイントがあれば止める
     if (breakpoints) {
       const bps = breakpoints.filter(bp => bp.line === this.convertDebuggerLineToClient(line));
-      if (bps.length > 0) {
-        this.sendResponse(response);
-        this.sendEvent(new StoppedEvent("breakpoint", AsmDebugSession.THREAD_ID));
-        return true;
-      }
+      return bps.length > 0;
     }
     return false;
   }
