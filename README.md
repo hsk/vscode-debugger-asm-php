@@ -37,6 +37,8 @@ addp:   enter a b
 
 ## 実行方法
 
+    npm install
+    make ts
     make
 
 とすると、このプロジェクト自体が ~/.vscode/extensions/asm-php-0.0.1 にコピーされます。

@@ -1,12 +1,12 @@
 all:
 	make uninstall
-	cp -rf ../vscode-debugger-asm-php ~/.vscode/extensions/asm-php-0.0.1
+	cp -rf ../vscode-debugger-simple-asm ~/.vscode/extensions/simple-asm-0.0.1
 	make tail
 
 uninstall:
 	rm -rf /tmp/server.log
 	rm -rf /tmp/recive.log
-	rm -rf ~/.vscode/extensions/asm-php-0.0.1
+	rm -rf ~/.vscode/extensions/simple-asm-0.0.1
 ocaml:
 	cd dist/ocaml; make
 

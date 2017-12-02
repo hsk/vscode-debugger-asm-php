@@ -1,6 +1,6 @@
 {
-  "name": "asm-php",
-  "displayName": "asm-php",
+  "name": "simple-asm",
+  "displayName": "simple-asm",
   "description": "",
   "version": "0.0.1",
   "publisher": "hsk",
@@ -12,17 +12,25 @@
   ],
   "main": "./out/src/extension",
   "activationEvents": [
-    "onCommand:extension.asm-php-debug.provideInitialConfigurations"
+    "onCommand:extension.simple-asm-debug.provideInitialConfigurations"
   ],
   "contributes": {
     "ブレークポイントが設定できる言語設定": "プレーンテキストだとブレークポイントが設定可能になる",
     "breakpoints": [ { "language": "plaintext" } ],
     "debuggers": [{
-      "type": "asm-php",
-      "label": "Asm PHP Debug",
+      "type": "simple-asm",
+      "label": "Simple Asm Debug",
       "program": "./dist/server.sh",
       "デバッグ ▶ 構成の追加で呼ばれるコマンド" : "コマンドの中身は src/extension.ts にあります。",
-      "initialConfigurations": "extension.asm-php-debug.provideInitialConfigurations",
+      "initialConfigurations": [
+          {
+            "type": "simple-asm",
+            "request": "launch",
+            "name": "Asm Debug",
+            "program": "${workspaceRoot}/asm.txt",
+            "stopOnEntry": true
+          }
+        ],
       "launch.json の設定のスキーマ":"入力時に説明が表示されたり、型チェックできたりします。",
       "configurationAttributes": {
         "launch": {
@@ -49,14 +57,13 @@
       "launch.json を編集中に追加する場合のテンプレート":"日本語で説明を書いて、デバッグ設定付きにしてみました。",
       "configurationSnippets": [
         {
-          "label": "Asm-php Debug: Launch(dist/server.php debug)",
-          "description": "debugServer オプションが付きなので、 dist/server.php を 開発用 VS Code で server をデバッグ起動したものに接続します。",
+          "label": "Simple-Asm Debug: Launch",
+          "description": "dist/server.sh を用いてデバッグします",
           "body": {
-            "type": "asm-php",
+            "type": "simple-asm",
             "request": "launch",
-            "name": "asm-phpデバッグサーバ",
-            "program": "^\"\\${workspaceRoot}/asm.txt\"",
-            "debugServer": 4711
+            "name": "Simple-Asm デバッグ",
+            "program": "^\"\\${workspaceRoot}/asm.txt\""
           }
         }
       ]
