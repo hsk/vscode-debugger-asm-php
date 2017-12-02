@@ -7,7 +7,7 @@
     {
       "type": "simple-asm",
       "request": "launch",
-      "name": "Asm Debug",
+      "name": "Asm Debug PHP Version",
       "program": "${workspaceRoot}/asm.txt",
       "mode":"server.php"
     },
@@ -17,6 +17,14 @@
       "name": "Asm Debug OCaml Version",
       "program": "${workspaceRoot}/asm.txt",
       "mode":"server"
+    },
+    {
+      "type": "simple-asm",
+      "request": "launch",
+      "name": "Asm Debug TS Version",
+      "program": "${workspaceRoot}/asm.txt",
+      "mode":"../out/src/server.js",
+      "runtime":"node"
     }
   ]
 }

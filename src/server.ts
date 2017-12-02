@@ -70,6 +70,7 @@ class VM {
     this._codes = codes;
     this._labels = labels;
     this._currentPos = labels["main"];
+    this.frames=[this.frame("main","a")];
   }
   getValue(argv:string):number {
     const v = parseInt(argv);
@@ -84,6 +85,10 @@ class VM {
   }
   setValue(reg:string,v:number):void {
     this._vars[reg]=v;
+  }
+
+  frame(label:string,p:string):{p:string,vars:Map<string,number>,pos:number,nm:string} {
+    return {p:p,vars:this._vars,pos:this._currentPos,nm:label};
   }
 
   step(): boolean {
@@ -116,7 +121,7 @@ class VM {
       this.log(a)
       break;
     case "ret":
-      if(this.frames.length==0) {
+      if(this.frames.length<=1) {
         this._currentPos = this._codes.length;
         return false;
       }
@@ -132,7 +137,7 @@ class VM {
         let pos = this._labels[label]
         let code=this._codes[pos]
         let data = code.data.slice(0)
-        this.frames.push({p:<string>params.pop(),vars:this._vars,pos:this._currentPos,nm:label});
+        this.frames.push(this.frame(label,<string>params.pop()));
         let vars = new Map<string,number>();
         for(let i = 0; i < params.length; i++)
           vars[data[i+1]]=this.getValue(params[i]);
@@ -170,6 +175,7 @@ class AsmDebugSession extends DebugSession {
   // The 'initialize' request is the first request called by the frontend
   // to interrogate the features the debug adapter provides.
   protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+    this.log("type script version debugger");
     this.sendEvent(new InitializedEvent());
 
     response.body = response.body || {};
@@ -244,9 +250,6 @@ class AsmDebugSession extends DebugSession {
         this.convertDebuggerLineToClient(code.line), 0))
       code=this._lang.getCode(frame.pos)
     }
-    frames.push(new StackFrame(0,"main", new Source(basename(this._sourceFile),
-      this.convertDebuggerPathToClient(this._sourceFile)),
-      this.convertDebuggerLineToClient(code.line), 0))
     const start  = args.startFrame ? args.startFrame : 0;
     const levels = args.levels ? args.levels : frames.length;
     response.body = {

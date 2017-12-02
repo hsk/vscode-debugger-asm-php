@@ -13,6 +13,7 @@
   ],
   "main": "./out/src/extension",
   "activationEvents": [
+    "onDebug",
     "onCommand:extension.simple-asm-debug.provideInitialConfigurations",
     "onCommand:extension.simple-asm-debug.getProgramName"
   ],
@@ -55,6 +56,11 @@
               "type":"string",
               "description": "use server program server or server.php or ../out/src/server.js",
               "default": "server.php"
+            },
+            "runtime": {
+              "type":"string",
+              "description": "runtime \"\", node or etc...",
+              "default": ""
             },
             "env": {
               "type":"object",

@@ -319,20 +319,20 @@ class AsmDebugSession extends DebugSession {
     $this->_sourceFile = $args["program"];
     $this->_lang->loadFile($this->_sourceFile);
     if (!isset($args["stopOnEntry"])) {
-      if ($this->hitBreakPoint($response)) return $this->sendStoped($response,"breakpoint");
+      if ($this->hitBreakPoint($response)) return $this->sendStopped($response,"breakpoint");
       return $this->continueRequest($response, array("threadId"=> AsmDebugSession::THREAD_ID));
     }
-    $this->sendStoped($response,"entry");
+    $this->sendStopped($response,"entry");
   }
 
   // ▶ ボタンを押した時に呼ばれる
   protected function continueRequest($response, $args) {
     while (true) {
       if ($this->step()) return $this->sendTerminated($response);
-      if ($this->hitBreakPoint()) return $this->sendStoped($response,"breakpoint");
+      if ($this->hitBreakPoint()) return $this->sendStopped($response,"breakpoint");
     }
   }
-  function sendStoped($response, $reason) {
+  function sendStopped($response, $reason) {
     $this->sendResponse($response);
     $this->sendEvent("stopped",array("reason"=>$reason,"threadId"=>AsmDebugSession::THREAD_ID));
   }
@@ -386,22 +386,22 @@ class AsmDebugSession extends DebugSession {
     $len = count($this->_lang->frames);
     while (true) {
       if ($this->step()) return $this->sendTerminated($response);
-      if ($this->hitBreakPoint()) return $this->sendStoped($response,"breakpoint");
-      if ($len >= count($this->_lang->frames)) return $this->sendStoped($response,"step");
+      if ($this->hitBreakPoint()) return $this->sendStopped($response,"breakpoint");
+      if ($len >= count($this->_lang->frames)) return $this->sendStopped($response,"step");
     }
   }
 
   protected function stepInRequest($response, $args) {
     if($this->step()) return $this->sendTerminated($response);
-    $this->sendStoped($response,"step");
+    $this->sendStopped($response,"step");
   }
 
   protected function stepOutRequest($response, $args) {
     $len = count($this->_lang->frames);
     while (true) {
       if ($this->step()) return $this->sendTerminated($response);
-      if ($this->hitBreakPoint()) return $this->sendStoped($response,"breakpoint");
-      if (count($this->_lang->frames) < $len) return $this->sendStoped($response,"step");
+      if ($this->hitBreakPoint()) return $this->sendStopped($response,"breakpoint");
+      if (count($this->_lang->frames) < $len) return $this->sendStopped($response,"step");
     }
   }
   protected function scopesRequest($response, $args) {
