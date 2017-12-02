@@ -2,6 +2,7 @@ open DebugSession
 open AsmDebugSession
 open Yojson.Basic.Util
 let dispatch () =
+  log("ocaml version debugger");
   log1("**************************************************");
   let rec loop () =
     match readData(stdin) with

@@ -5,14 +5,16 @@
   "version": "0.0.1",
   "publisher": "hsk",
   "engines": {
-    "vscode": "^1.12.0"
+		"vscode": "^1.17.0",
+    "node": "^7.9.0"
   },
   "categories": [
     "Other"
   ],
   "main": "./out/src/extension",
   "activationEvents": [
-    "onCommand:extension.simple-asm-debug.provideInitialConfigurations"
+    "onCommand:extension.simple-asm-debug.provideInitialConfigurations",
+    "onCommand:extension.simple-asm-debug.getProgramName"
   ],
   "contributes": {
     "ブレークポイントが設定できる言語設定": "プレーンテキストだとブレークポイントが設定可能になる",
@@ -20,7 +22,9 @@
     "debuggers": [{
       "type": "simple-asm",
       "label": "Simple Asm Debug",
-      "program": "./dist/server.sh",
+      "adapterExecutableCommand": "extension.simple-asm-debug.getProgramName",
+      "program":"./dist/server.sh",
+      "args": [ "server.php"],
       "デバッグ ▶ 構成の追加で呼ばれるコマンド" : "コマンドの中身は src/extension.ts にあります。",
       "initialConfigurations": [
           {
@@ -28,6 +32,7 @@
             "request": "launch",
             "name": "Asm Debug",
             "program": "${workspaceRoot}/asm.txt",
+            "mode": "server.php",
             "stopOnEntry": true
           }
         ],
@@ -45,6 +50,16 @@
               "type": "boolean",
               "description": "Automatically stop after launch.",
               "default": true
+            },
+            "mode": {
+              "type":"string",
+              "description": "use server program server or server.php or ../out/src/server.js",
+              "default": "server.php"
+            },
+            "env": {
+              "type":"object",
+              "description": "use server program server or server.php or ../out/src/server.js",
+              "default": "server.php"
             },
             "trace": {
               "type": "boolean",
@@ -76,16 +91,17 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
-    "@types/mocha": "^2.2.32",
-    "@types/node": "^6.0.40",
-    "mocha": "^2.3.3",
-    "tslint": "^5.2.0",
-    "typescript": "^2.0.3",
-    "vscode": "^1.0.0",
-    "vscode-debugadapter-testsupport": "^1.19.0"
+		"@types/node": "^6.0.50",
+		"@types/mocha": "^2.2.44",
+		"typescript": "^2.5.3",
+		"mocha": "^3.5.0",
+		"vscode": "^1.1.6",
+		"vscode-debugadapter-testsupport": "^1.24.0",
+		"tslint": "^5.8.0",
+    "vsce": "^1.31.2"
   },
   "dependencies": {
-    "vscode-debugadapter": "^1.19.0",
-    "vscode-debugprotocol": "^1.19.0"
+    "vscode-debugprotocol": "^1.25.0-pre.0",
+    "vscode-debugadapter": "^1.25.0-pre.0"
   }
 }
