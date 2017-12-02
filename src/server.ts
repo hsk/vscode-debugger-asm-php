@@ -320,17 +320,19 @@ class AsmDebugSession extends DebugSession {
   protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
     console.log("evalute")
     console.log(args);
-    response.body = {
-      result: this._lang.getValue(args.expression)+"",
-      variablesReference: 0
-    };
+    if (this._lang.getValue(args.expression)) {// 使用できません対策
+      response.body = {
+        result: this._lang.getValue(args.expression)+"",
+        variablesReference: 0
+      };
+    }
     this.sendResponse(response);
   }
 
   protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments): void {
     console.log("setVariableRequest")
     this._lang.setValue(args.name, parseInt(args.value));
-    response.body = args;
+    response.body = {value:this._lang.getValue(args.name)+"",variablesReference: 0};
     this.sendResponse(response);
   }
   private sendStopped(response: DebugProtocol.Response, reason:string): void {

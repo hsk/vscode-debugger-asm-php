@@ -141,13 +141,11 @@ let variablesRequest((`Assoc response:Yojson.Basic.json), args) =
   sendResponse(`Assoc (response @ ["body",`Assoc["variables",`List variables]]))
 
 let setVariableRequest((`Assoc response:Yojson.Basic.json), (`Assoc args:Yojson.Basic.json)) =
-  log "setVariable";
-  log1 "setVariable****************";
   let name = (`Assoc args) |> member "name" |> to_string in
   let value = try (`Assoc args) |> member "value"|> to_string |> int_of_string with _ -> 0 in
   VM.setValue(name, value);
-  let args =Ast.update name (`String (string_of_int value)) args in
-  sendResponse(`Assoc (response @ ["body", `Assoc args]))
+  let args =["value", (`String (string_of_int value)); "variablesReference" , `Int 0] in
+  sendResponse(`Assoc (response @ ["body",`Assoc args]))
 
 let evaluateRequest((`Assoc response:Yojson.Basic.json), args) =
   try

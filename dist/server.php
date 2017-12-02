@@ -435,15 +435,17 @@ class AsmDebugSession extends DebugSession {
 
   protected function setVariableRequest($response, $args) {
     $this->_lang->setValue($args["name"], (int)$args["value"]);
-    $response["body"] = $args;
+    $response["body"] = array("value"=>((int)$args["value"])."", "variablesReference" => 0);
     $this->sendResponse($response);
   }
 
   protected function evaluateRequest($response, $args) {
-    $response["body"] = array(
-      "result"=> $this->_lang->getValue($args["expression"])."",
-      "variablesReference" => 0
-    );
+    if(isset($this->_lang->_vars[$args["expression"]])) {// 使用できません対策
+      $response["body"] = array(
+        "result"=> $this->_lang->getValue($args["expression"])."",
+        "variablesReference" => 0
+      );
+    }
     $this->sendResponse($response);
   }
 }
