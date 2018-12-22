@@ -1,7 +1,7 @@
-# VS コードのデバッガサンプル(PHPバージョン)
+# VS コードのデバッガサンプル(TypeScript,PHP,OCamlの３つの実装があります)
 
 これは簡単なアセンブラ言語を作ってそのデバッガを作るサンプルプロジェクトです。
-通常は、TypeScriptでDebug Extensions を書くのですが、簡単な標準入出力で VS Code Debug Protocol を使ってデバッグ用のサーバが書けそうなので、Debug Extensions を PHP で書いてみたというものです。
+通常は、TypeScriptでDebug Extensions を書くのですが、簡単な標準入出力で VS Code Debug Protocol を使ってデバッグ用のサーバが書けそうなので、Debug Extensions を PHP で書いてみて OCaml にも移植してみたものです。
 
 ![img](https://raw.githubusercontent.com/hsk/vscode-docs/ja/docs/extensions/images/example-debuggers/debug-arch.png)
 

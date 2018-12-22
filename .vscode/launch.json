@@ -5,10 +5,17 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "java",
+      "name": "Debug (Launch) - Current File",
+      "request": "launch",
+      "mainClass": "${file}"
+    },
+    {
       "type": "simple-asm",
       "request": "launch",
       "name": "Asm Debug PHP Version",
       "program": "${workspaceRoot}/asm.txt",
+      "stopOnEntry": true,
       "mode":"server.php"
     },
     {
@@ -17,6 +24,14 @@
       "name": "Asm Debug OCaml Version",
       "program": "${workspaceRoot}/asm.txt",
       "mode":"server"
+    },
+    {
+      "type": "simple-asm",
+      "request": "launch",
+      "name": "Asm pasm.txt Prolog Version",
+      "program": "${workspaceRoot}/pasm.txt",
+      "stopOnEntry": true,
+      "mode":"./prolog/server.pl"
     },
     {
       "type": "simple-asm",
