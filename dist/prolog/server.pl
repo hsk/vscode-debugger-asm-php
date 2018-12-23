@@ -38,17 +38,14 @@ readData(Len,R):-
 readData2(0,_):- !,false.
 readData2(Len,R):- !,atom_number(Len,Len2),prompt1(''),
                    read_string(user_input,Len2,Str),!,atom_string(R,Str),!.
-dispatch(Data):-
-  trim(Data,Data_),atom_json_dict(Data_,Data2,[value_string_as(atom)]),
-  log2(Data),log1(Data),Command = Data2.command,
-  (\+current_predicate(pub:Command/2) -> log('unknown command ~w',[Data_])
-  ; Res= _{type:response,request_seq:Data2.get(seq),
-           command:Data2.command,success:true},
+dispatch(Data):- trim(Data,Data_),log2(Data),log1(Data),
+  atom_json_dict(Data_,Data2,[value_string_as(atom)]),Com = Data2.command,
+  (\+current_predicate(pub:Com/2) -> log('unknown command ~w',[Data_])
+  ; Res= _{type:response,request_seq:Data2.get(seq),command:Com,success:true},
     (Res2 = Res.put(body,Data2.get(body));Res2=Res),
     (Args=Data2.get(arguments); Args=null),
-    nb_setval(last_request_seq,0),call(pub:Command,Res2,Args),
-    log1('call method ok-------------------'),(Command=disconnect,halt;true)
-  ).
+    nb_setval(last_request_seq,0),call(pub:Com,Res2,Args),
+    log1('call method ok-------------------'),(Com=disconnect,halt;true)).
 dispatch:- readData(Data),dispatch(Data),dispatch. dispatch.
 % 例外時ブレークポイント
 pub:setExceptionBreakpoints(Res,_):- response(Res).
@@ -62,8 +59,7 @@ thread_id(1).
 :- nb_setval(breakpointId,1000),nb_setval(handeler_id,1000),
    setDebuggerLinesStartAt1(true),setDebuggerColumnsStartAt1(true).
 % 初期化
-pub:initialize(Res,_):-
-  event(initialized),(Body=Res.get(body); Body=_{}),
+pub:initialize(Res,_):- event(initialized),(Body=Res.get(body); Body=_{}),
   response(Res.put(body,
     Body.put([supportsConfigurationDonecommand:true,
               %supportsSetExpression:true,
@@ -87,38 +83,32 @@ setBreakpoints2(L,[_|Cs],L2,V):- setBreakpoints2(L,Cs,L2,V).
 pub:threads(Res,_):-
   thread_id(Id),response(Res.put(body,_{threads:[_{id:Id,name:'thread 1'}]})).
 % デバッガ起動時の最初の実行
-pub:launch(Res,Args):-
-  nb_setval(sourceFile,Args.program),vm:loadFile(Args.program),
-  (true=Args.get(stopOnEntry)->stopped(Res,entry)
-  ; ( hitBreakPoint(true) -> stopped(Res,breakpoint)
-    ; thread_id(Id),pub:continue(Res,_{threadId:Id}))).
+pub:launch(Res,Args):- nb_setval(file,Args.program),vm:loadFile(Args.program),
+                       ( true=Args.get(stopOnEntry)->stopped(Res,entry)
+                       ; ( hitBreakPoint(true) -> stopped(Res,breakpoint)
+                         ; thread_id(Id),pub:continue(Res,_{threadId:Id}))).
 % ▶ ボタンを押した時に呼ばれる
 pub:continue(Res,_):- \+vm:step,!,terminated(Res).
 pub:continue(Res,_):- hitBreakPoint(true),!,stopped(Res,breakpoint).
 pub:continue(Res,Args):- pub:continue(Res,Args).
-hitBreakPoint(R):- % ブレークポイントや例外が発生したらブレークする
-  % 対象のファイルのブレークポイントを取得する
-  nb_getval(sourceFile,File),breakPoints(File,Breakpoints),
-  % ブレークポイントがあれば止める
-  vm:getLine(Line),include(hitBreakPointFilter(Line),Breakpoints,Bps),
-  (Bps=[]->R=false;R=true),!.
+hitBreakPoint(R):- nb_getval(file,File),breakPoints(File,Bps1),
+                   vm:getLine(Line),include(hitBreakPointFilter(Line),Bps1,Bps),
+                   (Bps=[]->R=false;R=true),!.
 hitBreakPointFilter(Line,Bp):- convertDebuggerLineToClient(Line,Bp.line).
 % スタックトレース
-pub:stackTrace(Res,Args):-
-  nb_getval(sourceFile,SourceFile),file_base_name(SourceFile,Name),
-  convertDebuggerPathToClient(SourceFile,Path),
+pub:stackTrace(Res,Args):- nb_getval(file,File),file_base_name(File,Name),
+  convertDebuggerPathToClient(File,Path),
   Source=_{name:Name,path:Path,sourceReference:0},
-  vm:frames(Frames),length(Frames,L),vm:getCode0(Code),
-  foldl(stackTrace1(Source),Frames,(L,[],Code),(_,Frames2,_)),!,
+  vm:frames(Frames),length(Frames,L),vm:getLine(Line),
+  foldl(stackTrace1(Source),Frames,(L,[],Line),(_,Frames2,_)),!,
   (Start  = Args.get(startFrame) ; Start = 0),
-  (Levels = Args.get(levels) ; Levels = L),
-  End is min(L,Start+Levels)-1,
+  (Levels = Args.get(levels) ; Levels = L),End is min(L,Start+Levels)-1,
   findall(F,(between(Start,End,I),nth0(I,Frames2,F)),Fs),reverse(Fs,RFs),
   response(Res.put(body,_{stackFrames: RFs,totalFrames: L})).
-stackTrace1(Source,Frame,(Id,Frames1,(Line1:_:_)),(Id1,[R|Frames1],Code2)):-
+stackTrace1(Source,Frame,(Id,Frames1,Line1),(Id1,[R|Frames1],Line2)):-
   convertDebuggerLineToClient(Line1,Line),
-  R = _{id:Id,name: Frame.nm,source:Source,line:Line,column:0},
-  vm:getCode(Frame.pos,Code2),Id1 is Id-1.
+  R=_{id:Id,name: Frame.nm,source:Source,line:Line,column:0},
+  vm:code(Frame.pos=Line2:_:_),Id1 is Id-1.
 % ステップオーバー
 pub:next(Res,Args):- vm:frameLength(L),!,next(Res,Args,L).
 next(Res,_,_):- \+vm:step,!,terminated(Res).
@@ -135,14 +125,12 @@ stepOut(Res,_,_):- hitBreakPoint(true),!,stopped(Res,breakpoint).
 stepOut(Res,_,Len):- vm:frameLength(L),L < Len,!,stopped(Res,step).
 stepOut(Res,Args,Len):- stepOut(Res,Args,Len).
 % 変数のスコープ
-pub:scopes(Res,Args):-
-  concat(global_,Args.frameId,FrameRef),createHandler(FrameRef,Ref),
-  Scopes=[_{name:'Local',variablesReference:Ref,expensive:false}],
-  response(Res.put(body,_{scopes:Scopes})).
+pub:scopes(Res,Args):- concat(global_,Args.frameId,F),createHandler(F,Ref),
+  response(Res.put(body,_{
+    scopes:[_{name:'Local',variablesReference:Ref,expensive:false}]})).
 createHandler(V,HId):- inc(handeler_id,HId),assert(variableHandles(HId = V)).
 % 変数の値の連想配列取得
-pub:variables(Res,Args):-
-  variableHandles(Args.variablesReference=_),
+pub:variables(Res,Args):- variableHandles(Args.variablesReference=_),
   nb_getval(vars,Vars),dict_pairs(Vars,_,Pairs),
   findall(_{name:I,type:integer,value:A,variablesReference:0,storageItem:A},(
     member(I-V,Pairs),sformat(A,'~w',[V])
@@ -150,9 +138,8 @@ pub:variables(Res,Args):-
   response(Res.put(body,_{variables:Vs})).
 pub:variables(Res,_):- response(Res.put(body,_{variables:[]})).
 % 変数設定
-pub:setVariable(Res,Args):-
-  atom_number(Args.value,N),vm:set(Args.name,N),sformat(A,'~w',[N]),
-  response(Res.put(body,_{value:A,variablesReference: 0})).
+pub:setVariable(Res,Args):- atom_number(Args.value,N),vm:set(Args.name,N),
+  sformat(A,'~w',[N]),response(Res.put(body,_{value:A,variablesReference: 0})).
 % 変数名などから計算
 pub:evaluate(Res,Args):-
   vm:parseImm(Args.expression,E),nb_getval(vars,V),sformat(A,'~w',[V.get(E)]),
