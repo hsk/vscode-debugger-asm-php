@@ -12,12 +12,9 @@ loadFun(_,[]).
 loadFun(I,[_:_:A:-T|Fs]) :- assert(label(A=I)),loadTerm(T,I,I2),loadFun(I2,Fs).
 loadTerm((A,B)) --> loadTerm(A),loadTerm(B).
 loadTerm(T,I,I1) :- I1 is I+1, assert(code(I=T)).
-
 get_(I,I) :- integer(I),!.
 get_(A,V) :- atom(A),nb_getval(vars,Vars),V=Vars.get(A).
-get(I,V) :- get_(I,V),!.
-get(A,0) :- atom(A).
-
+get(I,V) :- get_(I,V),!;atom(I),V=0.
 getLine(L) :- nb_getval(currentPos,P),code(P=L:_:_).
 getCode(P,C) :- code(P=C).
 getCode0(C) :- nb_getval(currentPos,P),code(P=C).
@@ -28,7 +25,7 @@ step(add(A,B,C)) :- get(A,I1),get(B,I2),I is I1+I2,set(C,I),next.
 step(sub(A,B,C)) :- get(A,I1),get(B,I2),I is I1-I2,set(C,I),next.
 step(mul(A,B,C)) :- get(A,I1),get(B,I2),I is I1*I2,set(C,I),next.
 step(div(A,B,C)) :- get(A,I1),get(B,I2),I is I1 div I2,set(C,I),next.
-step(print(A)) :- get(A,V),log([V]),next.
+step(print(A)) :- get(A,V),log(V),next.
 step(ret(A)) :-
   frames(Frames),length(Frames,Len),Len>1 ->
     retract(frame(F)),get(A,V),NF=F.put(vars,F.vars.put(F.p, V)),
